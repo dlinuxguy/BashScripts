@@ -1,0 +1,58 @@
+#!/bin/bash
+#Author ChintanM
+#Version 1.0
+
+
+function versionCheck
+{
+minBashVersion=`bash --version | head -1 | cut -f4 -d' '| cut -f2 -d'.'`
+
+if [ $minBashVersion -lt 2 ]
+then
+        echo "You need bash version higher or equal to 4.2" >/dev/stderr
+        versionTest='fail'
+else
+        versionTest='pass'
+fi
+
+}
+
+ul='\u250c'
+hr='\u2500'
+ur='\u2510'
+vr='\u2502'
+ll='\u2514'
+lr='\u2518'
+nl='\n'
+
+versionCheck
+
+if [ $versionTest == 'fail' ]
+then
+        echo "${1}"
+        exit
+fi
+
+wordsize=`echo $1 |wc -c`
+
+echo -en "${ul}"
+counter=1
+while [ $counter -lt $wordsize ]
+do
+        echo -en "$hr"
+        counter=$[ $counter + 1 ]
+done
+
+echo -en "${ur}${nl}${vr}${1}${vr}${nl}"
+
+echo -en "$ll"
+
+counter=1
+while [ $counter -lt $wordsize ]
+do
+        echo -en "$hr"
+        counter=$[ $counter + 1 ]
+done
+echo -en "${lr}${nl}"
+
+
