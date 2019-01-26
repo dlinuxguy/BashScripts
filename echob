@@ -1,58 +1,83 @@
 #!/bin/bash
 #Author DLinuxguy@Gmail.com
-#Version 1.0
+#Version 1.1
+
+
+
+if [ -f "~/bin/scriptHelper" ]
+then
+	source ~/bin/scriptHelper
+fi
+
+progName=`basename $0`
 
 
 function versionCheck
 {
-minBashVersion=`bash --version | head -1 | cut -f4 -d' '| cut -f2 -d'.'`
-
-if [ $minBashVersion -lt 2 ]
-then
-        echo "You need bash version higher or equal to 4.2" >/dev/stderr
-        versionTest='fail'
-else
-        versionTest='pass'
-fi
+	minBashVersion=`bash --version | head -1 | cut -f4 -d' '| cut -f2 -d'.'`
+	
+	if [ $minBashVersion -lt 2 ]
+	then
+	        echo "You need bash version higher or equal to 4.2" >/dev/stderr
+	        versionTest='fail'
+	else
+	        versionTest='pass'
+	fi
 
 }
 
-ul='\u250c'
-hr='\u2500'
-ur='\u2510'
-vr='\u2502'
-ll='\u2514'
-lr='\u2518'
-nl='\n'
+function drawBox
+{
 
-versionCheck
+	ul='\u250c'
+	hr='\u2500'
+	ur='\u2510'
+	vr='\u2502'
+	ll='\u2514'
+	lr='\u2518'
+	nl='\n'
+	
+	
+	if [ $versionTest == 'fail' ]
+	then
+	        echo "${1}"
+	        exit 2
+	fi
+	
+	wordsize=`echo $1 |wc -c`
+	
+	echo -en "${ul}"
+	counter=1
+	while [ $counter -lt $wordsize ]
+	do
+	        echo -en "$hr"
+	        counter=$[ $counter + 1 ]
+	done
+	
+	echo -en "${ur}${nl}${vr}${1}${vr}${nl}"
+	
+	echo -en "$ll"
+	
+	counter=1
+	while [ $counter -lt $wordsize ]
+	do
+	        echo -en "$hr"
+	        counter=$[ $counter + 1 ]
+	done
+	echo -en "${lr}${nl}"
 
-if [ $versionTest == 'fail' ]
+}
+
+
+#Main starts here
+
+if [ "$1" == "" ]
 then
-        echo "${1}"
-        exit
+	echo "Usage: $progName <Text message>"
+	exit 1
 fi
 
-wordsize=`echo $1 |wc -c`
+versionCheck
+drawBox "$1"
 
-echo -en "${ul}"
-counter=1
-while [ $counter -lt $wordsize ]
-do
-        echo -en "$hr"
-        counter=$[ $counter + 1 ]
-done
-
-echo -en "${ur}${nl}${vr}${1}${vr}${nl}"
-
-echo -en "$ll"
-
-counter=1
-while [ $counter -lt $wordsize ]
-do
-        echo -en "$hr"
-        counter=$[ $counter + 1 ]
-done
-echo -en "${lr}${nl}"
-
-
+exit 0
