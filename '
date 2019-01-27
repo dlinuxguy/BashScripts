@@ -1,0 +1,105 @@
+#!/bin/bash
+
+
+
+declare -a msgLine
+lcount=1
+maxllen=0
+totLines=0
+
+ul='\u250c'
+hr='\u2500'
+ur='\u2510'
+vr='\u2502'
+ll='\u2514'
+lr='\u2518'
+nl='\n'
+
+msg="$1"
+
+function getLineCount
+{
+	msg="$1"
+	totLines=`echo "$msg"| wc -l`
+}
+
+function getLinesCountAndMaxlen
+{
+
+
+while [ $lcount -le $totLines ]; 
+do 
+	msgLine[$lcount]=`echo "$msg" | head -$lcount | tail -1`; 
+	llen=`echo "${msgLine[$lcount]}"| wc -c`
+	
+#	echo "Mylines:${msgLine[$lcount]}:Lenght:$llen"; 
+	if [ $maxllen -lt $llen ]
+	then
+		maxllen=$llen
+	fi
+	lcount=$[ $lcount + 1 ]; 
+done
+
+#echo "Total lines $totLines with Max length $maxllen"
+
+}
+
+function upperBox
+{
+
+	boxlen=$1
+	echo -en "${ul}"
+        counter=1
+        while [ $counter -lt $boxlen ]
+        do
+                echo -en "$hr"
+                counter=$[ $counter + 1 ]
+        done
+        echo -en "${ur}${nl}"
+}
+
+function lowerBox
+{
+
+	boxlen=$1
+	echo -en "$ll"
+        counter=1
+        while [ $counter -lt $boxlen ]
+        do
+                echo -en "$hr"
+                counter=$[ $counter + 1 ]
+        done
+        echo -en "${lr}${nl}"
+}
+
+
+
+function printMultiLineBoxMsg
+{
+	
+
+	lcount=1
+
+	upperBox $maxllen
+
+	while [ $lcount -le $totLines ]
+	do
+		llen=`echo "${msgLine[$lcount]}" | wc -c`
+		echo -en "$vr"
+		echo -n "${msgLine[$lcount]}"
+		while [ $llen -lt $maxllen ]
+		do
+			echo -n " "
+			llen=$[ $llen + 1 ]
+		done
+		echo -en "${vr}${nl}"
+	
+		lcount=$[ $lcount + 1 ];
+	done
+
+	lowerBox $maxllen
+}
+
+getLineCount "$msg"
+getLinesCountAndMaxlen
+printMultiLineBoxMsg
