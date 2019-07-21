@@ -1,6 +1,8 @@
 #!/bin/bash
+#Author DLinuxguy@Gmail.com
+#Version 1.2
 
-
+source ~/bin/scriptHelper
 
 declare -a msgLine
 lcount=1
@@ -34,7 +36,7 @@ do
 	msgLine[$lcount]=`echo "$msg" | head -$lcount | tail -1`; 
 	llen=`echo "${msgLine[$lcount]}"| wc -c`
 	
-#	echo "Mylines:${msgLine[$lcount]}:Lenght:$llen"; 
+	echod "Mylines:${msgLine[$lcount]}:Lenght:$llen"; 
 	if [ $maxllen -lt $llen ]
 	then
 		maxllen=$llen
@@ -42,7 +44,7 @@ do
 	lcount=$[ $lcount + 1 ]; 
 done
 
-#echo "Total lines $totLines with Max length $maxllen"
+echod "Total lines $totLines with Max length $maxllen"
 
 }
 

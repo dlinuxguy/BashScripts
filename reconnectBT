@@ -1,0 +1,58 @@
+#!/bin/bash
+LB='FC:58:FA:9F:35:A3'
+SONY='00:18:09:93:55:E4'
+
+if [ "$2" == "L2" ]
+then
+        BTD=$LB
+fi
+if [ "$2" == "Sony" ]
+then
+        BTD=$SONY
+fi
+
+
+function Connect
+{
+
+echob "Connecting $BTD ...."
+echo "connect $BTD" | bluetoothctl &>/dev/null;
+
+Status=`echo  "info $BTD" | bluetoothctl 2>/dev/null| grep "Connected"| cut -f2 -d' '`
+        while [ "$Status" == "no" ] ; do
+                Status=`echo  "info $BTD" | bluetoothctl 2>/dev/null| grep "Connected"| cut -f2 -d' '`;
+                if [ "$Status" == "no" ] ; then
+                        echob "not connected. Connecting again....";
+                        echo "connect $BTD" | bluetoothctl &>/dev/null;
+                        sleep 3;
+                fi;
+        done
+
+}
+
+
+function Disconnect
+{
+
+	echob "Disconneting $BTD ...."
+        echo "disconnect $BTD" | bluetoothctl &>/dev/null
+
+}
+
+if [ "$1" == "-r" ]
+then
+        Disconnect "$BTD"
+	sleep 3
+        Connect "$BTD"
+fi
+
+if [ "$1" == "-d" ]
+then
+        Disconnect "$BTD"
+fi
+
+if [ "$1" == "-c" ]
+then
+        Connect "$BTD"
+fi
+
