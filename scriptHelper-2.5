@@ -1,0 +1,88 @@
+#########################################
+# Author ChintanM                       #
+# Version 2.5                           #
+#########################################
+
+ul='\u250c'
+hr='\u2500'
+ur='\u2510'
+vr='\u2502'
+ll='\u2514'
+lr='\u2518'
+nl='\n'
+
+export PATH=$PATH:/u/unixutl/bin
+
+debug=$[ $debug + 0 ]
+
+function echod
+{
+
+        if [ $debug -eq 1 ]
+        then
+                echo "$1" >/dev/stderr
+        fi
+}
+
+function echof
+{
+        EOL=`tput cols`
+        while [ $EOL -gt 0 ]
+        do
+                echo -en "$1"
+                EOL=$[ $EOL - 1 ]
+        done
+        echo ""
+}
+
+function plusplus()
+{
+        local i=$[ $1 + 1 ]
+        eval counter="'$i'"
+}
+
+function justWait()
+{
+        waitTime=$2
+        waitMSG=$1
+        echo ""
+        while [ $waitTime -gt 0 ];
+        do
+                echo "[$waitMSG "'-'" ]"; tput cuu1; sleep 0.25
+                echo "[$waitMSG "'\'" ]"; tput cuu1; sleep 0.25
+                echo "[$waitMSG "'|'" ]"; tput cuu1; sleep 0.25
+                echo "[$waitMSG "'/'" ]"; tput cuu1; sleep 0.25
+
+                waitTime=$[ $waitTime - 1 ]
+        done
+        echo ""
+}
+
+function startTimer()
+{
+        waitMSG=$1
+        echo ""
+        while [ 1 ];
+        do
+                echo "[$waitMSG ["'-'"]"; tput cuu1; sleep 0.25
+                echo "[$waitMSG ["'\'"]"; tput cuu1; sleep 0.25
+                echo "[$waitMSG ["'|'"]"; tput cuu1; sleep 0.25
+                echo "[$waitMSG ["'/'"]"; tput cuu1; sleep 0.25
+
+                waitTime=$[ $waitTime - 1 ]
+        done
+        echo ""
+
+}
+
+function stopTimer()
+{
+        local timerPID=$1
+        echo ""
+        echod "Killing $timerPID"
+        exec 2>/dev/null
+        kill $timerPID
+        exec 2
+        echod "$? Timer stopped"
+}
+
