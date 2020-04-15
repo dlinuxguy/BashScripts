@@ -1,6 +1,6 @@
 #########################################
 # Author ChintanM                       #
-# Version 2.5                           #
+# Version 4.0                           #
 #########################################
 
 ul='\u250c'
@@ -58,20 +58,28 @@ function justWait()
         echo ""
 }
 
-function startTimer()
+function Timer()
 {
         waitMSG=$1
         echo ""
         while [ 1 ];
         do
-                echo "[$waitMSG ["'-'"]"; tput cuu1; sleep 0.25
-                echo "[$waitMSG ["'\'"]"; tput cuu1; sleep 0.25
-                echo "[$waitMSG ["'|'"]"; tput cuu1; sleep 0.25
-                echo "[$waitMSG ["'/'"]"; tput cuu1; sleep 0.25
+                echo " $waitMSG ["'-'"]"; tput cuu1; sleep 0.25
+                echo " $waitMSG ["'\'"]"; tput cuu1; sleep 0.25
+                echo " $waitMSG ["'|'"]"; tput cuu1; sleep 0.25
+                echo " $waitMSG ["'/'"]"; tput cuu1; sleep 0.25
 
                 waitTime=$[ $waitTime - 1 ]
         done
         echo ""
+
+}
+
+function startTimer()
+{
+        Timer "$1" &
+        timerPID=$!
+        return $timerPID
 
 }
 
@@ -86,3 +94,61 @@ function stopTimer()
         echod "$? Timer stopped"
 }
 
+function createP()
+{
+        echod "Executing \"$1\""
+        "$1" &
+        PID=$!;
+        PIDS[$PID]=started;
+}
+
+function printP()
+{
+        checkP
+        for i in ${!PIDS[@]};
+        do
+                echo "PID $i is ${PIDS[$i]}";
+        done;
+}
+function checkP()
+{
+        declare -i completed=0
+        for i in ${!PIDS[@]};
+        do
+                pstatus=${PIDS[$i]};
+                if [ "$pstatus" == "started" ] || [ "$pstatus" == "running" ];
+                then
+                        if [ -d "/proc/$i" ];
+                        then
+                                PIDS[$i]=running;
+                                completed=$completed+1
+                        else
+                                unset PIDS[$i]
+                        fi;
+                fi;
+        done;
+        return $completed
+}
+
+function waitTillP()
+{
+        timerPID=0
+        if [ "$1" != "" ]
+        then
+                startTimer "$1"
+        fi
+        declare -i completed=1
+        while [ $completed -gt 0 ]
+        do
+                checkP
+                completed=$?
+                echod "$completed processe running"
+                sleep 1
+
+        done
+        if [ $timerPID -gt 0 ]
+        then
+                stopTimer $timerPID
+        fi
+}
+############# End of script ############################
