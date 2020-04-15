@@ -1,0 +1,152 @@
+#!/bin/bash
+####################################################
+#Author: ChintanM
+#Version 2.0
+####################################################
+
+
+source /u/unixutl/bin/scriptHelper
+
+declare -a nfsMounts
+declare -a dfPIDs
+declare -a pidToKill
+
+export totalMounts=0
+export checkCount=4
+export checkInterval=5
+export allGood=0
+export timer=0
+
+filerName="$1"
+
+
+#Calling order 2
+function getMountsList()
+{
+
+        nfsMounts=(`cat /proc/mounts | grep "nfs rw" | cut -f2 -d' '`)
+        counter=0
+        for i in ${nfsMounts[@]}
+        do
+                echo "[$counter] $i"
+                plusplus counter
+        done
+        totalMounts=$counter
+        echo "[Total active NFS Mounts: $totalMounts]"
+}
+
+
+#Calling order 4
+function checkMounts()
+{
+        counter=0
+        while [ $counter -lt $totalMounts ]
+        do
+                df ${nfsMounts[counter]} >/dev/null &
+                dfPIDs[counter]=$!
+                echod "[$counter] Checking ${nfsMounts[counter]} ${dfPIDs[counter]}"
+                plusplus counter
+        done
+}
+
+#Calling order 5
+function getStatus()
+{
+
+        justWait "Finding hung mounts. Wait..." $[ $checkCount * $checkInterval - 1 ] &
+        timer=$!
+        while [ $checkCount -gt 0 ] && [ $allGood -ne $totalMounts ]
+        do
+                echod "... $[ $checkCount * $checkInterval ] seconds"
+                sleep $checkInterval
+                counter=0
+                while  [ $counter -lt $totalMounts ]
+                do
+                        if [ ${dfPIDs[counter]} -ne 0 ]
+                        then
+                                getStatusOfMount $counter
+                        fi
+                        plusplus counter
+                done
+                checkCount=$[ $checkCount - 1 ]
+        done
+}
+
+#Calling order 5.1
+function getStatusOfMount()
+{
+
+        pid=${dfPIDs[$1]}
+        mount=${nfsMounts[$1]}
+
+        if [ -d /proc/$pid ]
+        then
+                cmdline=`cat /proc/$pid/cmdline`
+                echod "check on $mount is still running..."
+                echod $pid
+        elif [ $pid -ne 0 ]
+        then
+                echod "[$1] $mount is good"
+                dfPIDs[$1]=0
+                allGood=$[ $allGood + 1 ]
+        fi
+}
+
+#Calling order 6.1
+function getFilerName()
+{
+        filerName=`grep -w $1 /proc/mounts| tr -s ' '| cut -f1 -d' '`
+        echo -en "$filerName"
+
+}
+
+#Calling order 6
+function exitStatus()
+{
+        counter=0
+        atLeastOneisHung=0
+        exec 2>/dev/null
+        kill -15 $timer &>/dev/null
+        while  [ $counter -lt $totalMounts ]
+        do
+                if [ ${dfPIDs[counter]} -ne 0 ]
+                then
+                        echo "NFS Volume `getFilerName ${nfsMounts[counter]}` on mount ${nfsMounts[counter]} is hung."
+                        atLeastOneIsHung=1
+                fi
+                plusplus counter
+        done
+        if [ ! $atLeastOneIsHung ]
+        then
+                echo "[All good, none of NFS mounts are hung. ]"
+        fi
+}
+
+#Calling order 7
+function cleanup()
+{
+        counter=0
+        while  [ $counter -lt $totalMounts ]
+        do
+                if [ ${dfPIDs[counter]} -ne 0 ]
+                then
+                        echod "killing df ${nfsMounts[counter]} ${dfPIDs[counter]}"
+                        exec 2>/dev/null
+                        kill -15 ${dfPIDs[counter]} 2>/dev/null
+                        exec 2
+                fi
+                plusplus counter
+       done
+}
+
+function main()
+{
+        getMountsList
+        checkMounts
+        getStatus
+        exitStatus
+        cleanup
+}
+
+main
+exit 0
