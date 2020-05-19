@@ -1,0 +1,96 @@
+#!/bin/bash
+#Author: Chintan Murty
+#License: GPL
+#Version: 2.0
+
+
+
+declare -a dns_subnames
+declare -i name_is_valid=0
+declare -i counter=0
+declare -i len_of_subname=0
+bequite="no"
+
+function printHelp()
+{
+        prgname=`basename $0`
+        echo "Usage: $prgname [OPTIONS] <hostname|domainname>"
+        echo "Print if a passed string is a valid FQDN or not"
+        echo "Options are:"
+        echo -e "\t-q, --quite\tDo not print any message. When this option is used exit status\n\t\t\twill tell if name is valid or not. Exit status 0 means \"valid\"\n\t\t\tand non-zero value means \"not valid\"."
+        echo -e "\t-h, --help\tWill print this help message."
+        exit 1
+
+}
+
+for i in "$@"
+do
+
+        case $i in
+                -q|--quite)
+                bequite="yes"
+                shift
+                ;;
+                -h|--help)
+                printHelp
+                exit
+                ;;
+                *)
+                dns_name=$1
+                ;;
+        esac
+done
+
+
+function printmsg()
+{
+        if [ "${bequite}" == "no" ]
+        then
+                echo "$1"
+        fi
+}
+
+
+
+if [ "x${dns_name}e" == "xe" ]
+then
+        printHelp
+fi
+
+dns_subnames=(`echo $dns_name| tr '.' ' '`)
+
+len_of_subname=`echo ${dns_subnames[@]}| wc -w`
+
+if [ ${len_of_subname} -lt 2 ]
+then
+        printmsg "\"${dns_name}\" is too short to be a valid dns name."
+        name_is_valid=1
+        exit 100
+fi
+
+while [ $counter -lt $len_of_subname ]
+do
+
+        if [ $counter -eq $len_of_subname ]
+        then
+                echo ${dns_subnames[counter]} | egrep -q "^[[:alnum:]]{2,}$"
+                name_is_valid=$name_is_valid+$?
+        else
+                echo ${dns_subnames[counter]} | egrep -q "^[a-zA-Z0-9-]+$"
+                name_is_valid=$name_is_valid+$?
+
+                echo ${dns_subnames[counter]} | egrep -qv "^\-|\-$"
+                name_is_valid=$name_is_valid+$?
+        fi
+
+        counter=counter+1
+done
+
+if [ $name_is_valid -gt 0 ]
+then
+        printmsg "\"${dns_name}\" is not a valid FQDN."
+else
+        printmsg "\"${dns_name}\" is a valid FQDN."
+fi
+
+exit $name_is_valid
