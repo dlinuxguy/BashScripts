@@ -97,7 +97,7 @@ function stopTimer()
 function createP()
 {
         echod "Executing \"$1\""
-        "$1" &
+        $1 &
         PID=$!;
         PIDS[$PID]=started;
 }
