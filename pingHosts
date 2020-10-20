@@ -1,0 +1,36 @@
+#!/bin/bash
+#Author: dlinuxguy@gmail.com
+#Version: 2.0
+
+source ~/bin/scriptHelper
+
+arg1=$1
+
+pingCount=2
+deadLine=2
+
+
+pingpong()
+{
+        IP=$1
+        ping -c ${pingCount} -w ${deadLine} $IP >/dev/null
+        if [ $? -eq 0 ]
+        then
+                echo "$IP up"
+        else
+                echo "$IP down"
+        fi
+}
+
+if [ -f $arg1 ]
+then
+        for i in `cat $arg1| grep -v "#"`
+        do
+
+                createP "pingpong ${i}"
+        done
+else
+        echo "Enter a valid file name containing hosts name ..."
+fi
+
+waitTillP "pinging... "
