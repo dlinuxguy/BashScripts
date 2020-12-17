@@ -1,0 +1,59 @@
+#!/bin/bash
+#Author: ChintanM
+#Version: 5.0
+
+
+ETH=$1
+
+declare -i t1 t2 t3 r1 r2 r3 Tot
+declare -a data
+declare -i SleepTime=2
+declare -i KBs MBs
+
+TTL=10
+CNT=0
+
+KBs=1024*$SleepTime
+MBs=1024
+rUnit='KB/s'
+tUnit='KB/s'
+TUnit='KB/s'
+
+echo -e "[NIC] [Time Stamp]\t[Data RX]\t[Data TX]\t[Total]"
+
+while [ $CNT -lt $TTL ]
+do
+        data=(`ifconfig $ETH| grep "TX bytes"| tr -s '\t' ' ' | tr ':' ' '| cut -f4,9 -d' '`)
+        r1=data[0]
+        t1=data[1]
+        sleep $SleepTime
+        data=(`ifconfig $ETH| grep "TX bytes"| tr -s '\t' ' ' | tr ':' ' '| cut -f4,9 -d' '`)
+        r2=data[0]
+        t2=data[1]
+        t3=$t2-$t1
+        r3=$r2-$r1
+        t3=$t3/$KBs; tUnit='KB/s'
+        r3=$r3/$KBs; rUnit='KB/s'
+        Tot=t3+r3 ; TUnit='KB/s'
+        if [ $t3 -gt 1024 ]
+        then
+                t3=$t3/$MBs
+                tUnit='MB/s'
+        fi
+        if [ $r3 -gt 1024 ]
+        then
+                r3=$r3/$MBs
+                rUnit='MB/s'
+        fi
+
+        if [ $Tot -gt 1024 ]
+        then
+                Tot=$Tot/$MBs
+                TUnit='MB/s'
+        fi
+
+
+
+        echo -e "[$ETH] `date +"%m/%d %H:%M:%S"`\t $r3 $rUnit \t $t3 $tUnit \t $Tot $TUnit"
+        CNT=$[ $CNT + 1 ]
+done
